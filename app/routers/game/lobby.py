@@ -70,7 +70,7 @@ async def leave_game(request: Request, game_id: str, player_name: str = Form(...
     # Return the input form
     return templates.TemplateResponse(
         "form.html",
-        {"request": request, "name_taken": False, "game_id": game_id},
+        {"request": request, "game_id": game_id},
     )
 
 
