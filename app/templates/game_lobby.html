@@ -94,6 +94,12 @@
         .leave-btn:hover {
             background-color: #c82333;
         }
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
     </style>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script>
@@ -173,8 +179,18 @@
 
         <div id="current-player">
             <div class="name-input" id="nameInput">
+                <div id="validation-message"></div>
                 <form hx-post="/game/{{ game_id }}/join" hx-target="#current-player" hx-swap="innerHTML">
-                    <input type="text" name="player_name" placeholder="Enter your name" required>
+                    <input
+                        type="text"
+                        name="player_name"
+                        placeholder="Enter your name"
+                        required
+                        hx-get="/game/{{ game_id }}/validate-name"
+                        hx-trigger="change,keyup delay:300ms"
+                        hx-target="#validation-message"
+                        hx-swap="innerHTML"
+                    >
                     <button type="submit">Join Game</button>
                 </form>
             </div>
