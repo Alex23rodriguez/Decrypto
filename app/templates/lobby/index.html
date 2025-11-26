@@ -7,18 +7,16 @@
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
   </head>
-  <body class="bg-gray-100 font-sans">
+  <body class="bg-gray-100 font-sans" hx-ext="ws" ws-connect="/ws/game/{{game_id}}">
     <div class="max-w-2xl mx-auto p-5">
       <div class="bg-white p-8 rounded-lg shadow-lg text-center">
         <h1 class="text-3xl font-bold text-gray-800 mb-5">Welcome to Decrypto!</h1>
         <p class="text-gray-600 mb-4">You've entered the lobby for:</p>
-        <div class="text-2xl font-bold text-blue-600 mb-6">Game {{ game_id }}</div>
+        <div class="text-2xl font-bold text-blue-600 mb-6">Game ID: {{ game_id }}</div>
 
         <div id="current-player">{% include 'form.html' %}</div>
 
-        <div id="ws-list" hx-ext="ws" ws-connect="/ws/game/{{game_id}}">
-          {% include 'player_list.html' %}
-        </div>
+        <div id="player-list"> </div>
       </div>
     </div>
   </body>

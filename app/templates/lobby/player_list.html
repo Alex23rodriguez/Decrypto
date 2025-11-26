@@ -1,8 +1,8 @@
-<div id="players-list" class="my-5 p-4 bg-gray-50 rounded-md">
+<div id="player-list" class="my-5 p-4 bg-gray-50 rounded-md">
   <h3 class="text-lg font-semibold text-gray-800 mb-3">Players in Lobby:</h3>
   <ul class="list-none p-0 m-0">
     {% for player in current_players %}
-    <li class="py-1 border-b border-gray-200 last:border-b-0">{{ player }}</li>
+    <li class="py-1 border-b border-gray-200 last:border-b-0">{{ player }}{% if player == player_name %} (you) {% endif %}</li>
     {% endfor %}
   </ul>
   {% if current_players|length < 4 %}

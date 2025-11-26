@@ -1,9 +1,7 @@
-<div class="my-5">
+<div id="action-form" class="my-5">
   <form
-    hx-post="/game/{{ game_id }}/join"
-    hx-target="#current-player"
-    hx-swap="innerHTML"
     class="flex flex-col items-center gap-3"
+    ws-send
   >
     <div class="flex gap-2">
       <input
@@ -13,6 +11,7 @@
         required
         class="px-3 py-2 border-2 border-gray-300 rounded-md w-48 text-base focus:border-blue-500 focus:outline-none"
       />
+      <input type="hidden" name="action" value="join">
       <button
         type="submit"
         class="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-base font-medium"

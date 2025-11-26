@@ -1,20 +1,17 @@
-<div class="text-green-600 text-lg my-5">
-  Welcome, {{ player_name }}! You're ready to play.
-</div>
+<div id="action-form">
+  <div class="text-green-600 text-lg my-5">
+    Welcome, {{ player_name }}! You're ready to play.
+  </div>
 
-<div class="my-5">
-  <form
-    hx-post="/game/{{ game_id }}/leave"
-    hx-target="#current-player"
-    hx-swap="innerHTML"
-  >
-    <input type="hidden" name="player_name" value="{{ player_name }}" />
-    <button
-      type="submit"
-      class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
-    >
-      Leave Game
-    </button>
-  </form>
+  <div class="my-5">
+    <form ws-send>
+      <input type="hidden" name="action" value="leave" />
+      <button
+        type="submit"
+        class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm font-medium"
+      >
+        Leave Game
+      </button>
+    </form>
+  </div>
 </div>
-
