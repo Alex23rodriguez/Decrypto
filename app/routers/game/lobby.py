@@ -74,23 +74,6 @@ async def leave_game(request: Request, game_id: str, player_name: str = Form(...
     )
 
 
-@router.get("/game/{game_id}/validate-name", response_class=HTMLResponse)
-async def validate_name(request: Request, game_id: str, name: str):
-    # Trim whitespace and check if name is available
-    name = name.strip()
-    current_players = game_players.get(game_id, set())
-    available = name not in current_players and len(name) > 0
-
-    return templates.TemplateResponse(
-        "game_validate_name.html",
-        {
-            "request": request,
-            "available": available,
-            "message": "Name already taken" if not available and len(name) > 0 else "",
-        },
-    )
-
-
 @router.websocket("/ws/game/{game_id}")
 async def websocket_test(websocket: WebSocket, game_id: str):
     await websocket.accept()
