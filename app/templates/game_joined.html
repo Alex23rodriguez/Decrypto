@@ -1,3 +1,15 @@
 <div class="welcome-message">
-    Welcome, {{ player_name }}! You're ready to play.
+  Welcome, {{ player_name }}! You're ready to play.
 </div>
+
+<div class="leave-button">
+  <form
+    hx-post="/game/{{ game_id }}/leave"
+    hx-target="#current-player"
+    hx-swap="innerHTML"
+  >
+    <input type="hidden" name="player_name" value="{{ player_name }}" />
+    <button type="submit" class="leave-btn">Leave Game</button>
+  </form>
+</div>
+

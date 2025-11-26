@@ -56,6 +56,44 @@
             font-size: 18px;
             color: #28a745;
         }
+        .players-list {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .players-list h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+        .players-list ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        .players-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .players-list li:last-child {
+            border-bottom: none;
+        }
+        .leave-button {
+            margin: 20px 0;
+        }
+        .leave-btn {
+            padding: 8px 16px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .leave-btn:hover {
+            background-color: #c82333;
+        }
     </style>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
@@ -65,11 +103,24 @@
         <p>You've entered the lobby for:</p>
         <div class="game-id">Game {{ game_id }}</div>
 
-        <div class="name-input" id="nameInput">
-            <form hx-post="/game/{{ game_id }}/join" hx-target="#nameInput" hx-swap="outerHTML">
-                <input type="text" name="player_name" placeholder="Enter your name" required>
-                <button type="submit">Join Game</button>
-            </form>
+        {% if current_players %}
+        <div class="players-list">
+            <h3>Players in Lobby:</h3>
+            <ul>
+                {% for player in current_players %}
+                <li>{{ player }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div id="current-player">
+            <div class="name-input" id="nameInput">
+                <form hx-post="/game/{{ game_id }}/join" hx-target="#current-player" hx-swap="innerHTML">
+                    <input type="text" name="player_name" placeholder="Enter your name" required>
+                    <button type="submit">Join Game</button>
+                </form>
+            </div>
         </div>
 
         <p>The game will start soon...</p>
