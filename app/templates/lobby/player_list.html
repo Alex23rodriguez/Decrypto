@@ -1,13 +1,15 @@
-<div id="players-list" class="players-list">
-  <h3>Players in Lobby:</h3>
-  <ul>
+<div id="players-list" class="my-5 p-4 bg-gray-50 rounded-md">
+  <h3 class="text-lg font-semibold text-gray-800 mb-3">Players in Lobby:</h3>
+  <ul class="list-none p-0 m-0">
     {% for player in current_players %}
-    <li>{{ player }}</li>
+    <li class="py-1 border-b border-gray-200 last:border-b-0">{{ player }}</li>
     {% endfor %}
   </ul>
   {% if current_players|length < 4 %}
-  <p>Waiting for more players...</p>
+  <p class="text-gray-600 mt-3">Waiting for more players...</p>
   {% else %}
-  <button>Start game</button>
+  <button class="mt-3 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+    Start Game
+  </button>
   {% endif %}
 </div>
