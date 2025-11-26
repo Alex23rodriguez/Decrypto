@@ -10,23 +10,32 @@ This web application allows players to play Decrypto online with a mobile-first 
 
 ## Tech Stack
 
-- **Backend**: FastAPI (Python)
-- **Frontend**: HTMX (HTML, CSS, JavaScript)
+- **Backend**: FastAPI (Python) with router-based architecture
+- **Frontend**: HTMX (HTML, CSS, JavaScript) with WebSocket extensions
+- **Real-time Communication**: WebSockets for live player updates
 - **Design**: Mobile-first responsive
 
 ## Features
 
-- Online multiplayer gameplay
-- Simple interface with two tabs: My Team and Other Team
-- Mobile-optimized
+- **Real-time Multiplayer Lobby**: Live player list updates via WebSockets
+- **Duplicate Name Prevention**: Client-side validation prevents name conflicts
+- **Game State Management**: Automatic game start detection when 4+ players join
+- **Responsive Design**: Mobile-optimized interface
+- **Component-based Architecture**: Modular HTMX templates for maintainability
 
 ## Project Structure
 
 - `app/`: Main application code
+  - `routers/game/`: Router modules for game functionality
+    - `lobby.py`: Game lobby logic with WebSocket support
+  - `templates/lobby/`: HTMX template components
+    - `index.html`: Main lobby page
+    - `form.html`: Player name input form
+    - `joined.html`: Player joined state
+    - `player_list.html`: Live player list component
   - `data/`: Game data (e.g., wordlist.txt)
-  - `templates/`: HTMX templates
-  - `main.py`: FastAPI application
-- `run.py`: Entry point script
+  - `main.py`: FastAPI application entry point
+- `run.py`: Development server with configurable port
 - `pyproject.toml`: Project configuration
 - `uv.lock`: Dependency lock file
 
