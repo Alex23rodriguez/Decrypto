@@ -1,0 +1,18 @@
+<div class="name-input">
+  <form
+    hx-post="/game/{{ game_id }}/join"
+    hx-target="#current-player"
+    hx-swap="innerHTML"
+  >
+    <input
+      type="text"
+      name="player_name"
+      placeholder="Enter your name"
+      required
+    />
+    <button type="submit">Join Game</button>
+    {% if name_taken %}
+    <div id="validation-message" class="error-message">Name taken</div>
+    {% endif %}
+  </form>
+</div class="name-input">
