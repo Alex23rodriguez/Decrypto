@@ -28,13 +28,50 @@
             color: #007bff;
             margin: 20px 0;
         }
+        .name-input {
+            margin: 20px 0;
+        }
+        .name-input input {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            width: 200px;
+            margin-right: 10px;
+        }
+        .name-input button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .name-input button:hover {
+            background-color: #0056b3;
+        }
+        .welcome-message {
+            margin: 20px 0;
+            font-size: 18px;
+            color: #28a745;
+        }
     </style>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 </head>
 <body>
     <div class="lobby">
         <h1>Welcome to Decrypto!</h1>
         <p>You've entered the lobby for:</p>
         <div class="game-id">Game {{ game_id }}</div>
+
+        <div class="name-input" id="nameInput">
+            <form hx-post="/game/{{ game_id }}/join" hx-target="#nameInput" hx-swap="outerHTML">
+                <input type="text" name="player_name" placeholder="Enter your name" required>
+                <button type="submit">Join Game</button>
+            </form>
+        </div>
+
         <p>The game will start soon...</p>
     </div>
 </body>
