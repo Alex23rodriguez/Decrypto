@@ -1,0 +1,13 @@
+<div id="players-list" class="players-list">
+  <h3>Players in Lobby:</h3>
+  <ul>
+    {% for player in current_players %}
+    <li>{{ player }}</li>
+    {% endfor %}
+  </ul>
+  {% if current_players|length < 4 %}
+  <p>Waiting for more players...</p>
+  {% else %}
+  <button>Start game</button>
+  {% endif %}
+</div>

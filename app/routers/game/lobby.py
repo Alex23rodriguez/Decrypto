@@ -7,10 +7,10 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates/lobby")
 
 # In-memory storage for game players (game_id -> set of player names)
-game_players = {}
+game_players: dict[str, set[str]] = {}
 
 # WebSocket connections (game_id -> set of WebSocket connections)
-game_connections = {}
+game_connections: dict[str, set[WebSocket]] = {}
 
 
 @router.get("/game/{game_id}", response_class=HTMLResponse)
@@ -42,15 +42,12 @@ async def join_game(request: Request, game_id: str, player_name: str = Form(...)
         await broadcast_player_list(game_id)
 
         # Get other players (excluding current player)
-        other_players = game_players[game_id] - {player_name}
-
         return templates.TemplateResponse(
             "joined.html",
             {
                 "request": request,
                 "game_id": game_id,
                 "player_name": player_name,
-                "other_players": list(other_players),
             },
         )
 
@@ -95,10 +92,8 @@ async def validate_name(request: Request, game_id: str, name: str):
 
 
 @router.websocket("/ws/game/{game_id}")
-async def game_websocket(websocket: WebSocket, game_id: str):
+async def websocket_test(websocket: WebSocket, game_id: str):
     await websocket.accept()
-
-    # Add connection to the game
     if game_id not in game_connections:
         game_connections[game_id] = set()
     game_connections[game_id].add(websocket)
@@ -114,7 +109,10 @@ async def game_websocket(websocket: WebSocket, game_id: str):
         while True:
             # Wait for any message (we don't expect client messages for now)
             await websocket.receive_text()
-    except Exception:
+
+    except Exception as e:
+        print("Websocket exception:")
+        print(e)
         # Remove connection on disconnect
         if game_id in game_connections:
             game_connections[game_id].discard(websocket)
@@ -128,14 +126,17 @@ async def broadcast_player_list(game_id: str):
         return
 
     current_players = list(game_players.get(game_id, set()))
-    message = {"type": "players_update", "players": current_players}
 
     # Send to all connected clients
     disconnected = set()
     for connection in game_connections[game_id]:
         try:
-            await connection.send_json(message)
-        except Exception:
+            text = templates.env.get_template("player_list.html").render(
+                {"current_players": current_players}
+            )
+            await connection.send_text(text)
+        except Exception as e:
+            print(e)
             disconnected.add(connection)
 
     # Remove disconnected clients
