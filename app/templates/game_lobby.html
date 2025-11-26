@@ -96,6 +96,63 @@
         }
     </style>
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script>
+        // WebSocket connection for real-time updates
+        let ws;
+
+        function connectWebSocket() {
+            const gameId = '{{ game_id }}';
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/game/${gameId}`;
+
+            ws = new WebSocket(wsUrl);
+
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                if (data.type === 'players_update') {
+                    updatePlayerList(data.players);
+                }
+            };
+
+            ws.onclose = function() {
+                // Reconnect after a delay
+                setTimeout(connectWebSocket, 1000);
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+            };
+        }
+
+        function updatePlayerList(players) {
+            const playersListDiv = document.querySelector('.players-list');
+            if (players.length === 0) {
+                if (playersListDiv) {
+                    playersListDiv.remove();
+                }
+                return;
+            }
+
+            if (!playersListDiv) {
+                // Create players list if it doesn't exist
+                const gameIdDiv = document.querySelector('.game-id');
+                const newPlayersList = document.createElement('div');
+                newPlayersList.className = 'players-list';
+                newPlayersList.innerHTML = `
+                    <h3>Players in Lobby:</h3>
+                    <ul></ul>
+                `;
+                gameIdDiv.insertAdjacentElement('afterend', newPlayersList);
+            }
+
+            // Update the list
+            const ul = document.querySelector('.players-list ul');
+            ul.innerHTML = players.map(player => `<li>${player}</li>`).join('');
+        }
+
+        // Connect to WebSocket when page loads
+        document.addEventListener('DOMContentLoaded', connectWebSocket);
+    </script>
 </head>
 <body>
     <div class="lobby">
