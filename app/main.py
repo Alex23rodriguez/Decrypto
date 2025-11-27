@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers.game import lobby
+from app.routers import lobby
 
 app = FastAPI()
 
