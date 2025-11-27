@@ -6,6 +6,20 @@ from fastapi.templating import Jinja2Templates
 router = APIRouter()
 
 templates = Jinja2Templates(directory="app/templates/lobby")
+templates_root = Jinja2Templates(directory="app/templates")
+
+
+@router.get("/", response_class=HTMLResponse)
+async def landing_page(request: Request):
+    return templates_root.TemplateResponse(
+        "index.html",
+        {"request": request}
+    )
+
+
+@router.get("/lobby/", response_class=RedirectResponse)
+async def redirect_to_room(room_id: str):
+    return RedirectResponse(url=f"/lobby/{room_id}", status_code=302)
 
 
 # In-memory storage for lobby players

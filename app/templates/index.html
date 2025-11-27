@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Decrypto - Online Word Deduction Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  </head>
+  <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans">
+    <div class="max-w-4xl mx-auto p-5">
+      <!-- Hero Section -->
+      <div class="text-center py-12">
+        <h1 class="text-5xl font-bold text-gray-800 mb-4">Decrypto</h1>
+        <p class="text-xl text-gray-600 mb-8">The ultimate online word deduction game</p>
+        <div class="bg-white p-8 rounded-lg shadow-lg mb-8">
+          <h2 class="text-2xl font-semibold text-gray-800 mb-4">How to Play</h2>
+          <div class="grid md:grid-cols-3 gap-6 text-left">
+            <div class="text-center">
+              <div class="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                <span class="text-2xl">🎯</span>
+              </div>
+              <h3 class="font-semibold mb-2">Give Clues</h3>
+              <p class="text-sm text-gray-600">Teams give one-word clues for secret words</p>
+            </div>
+            <div class="text-center">
+              <div class="bg-green-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                <span class="text-2xl">🕵️</span>
+              </div>
+              <h3 class="font-semibold mb-2">Intercept</h3>
+              <p class="text-sm text-gray-600">Opposing team tries to guess your words</p>
+            </div>
+            <div class="text-center">
+              <div class="bg-purple-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-3">
+                <span class="text-2xl">🏆</span>
+              </div>
+              <h3 class="font-semibold mb-2">Win Together</h3>
+              <p class="text-sm text-gray-600">First team to 2 points wins!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Join Game Section -->
+      <div class="bg-white p-8 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-6 text-center">Join a Game</h2>
+        <form action="/lobby/" method="get" class="flex flex-col items-center gap-4">
+          <div class="flex gap-2 max-w-md w-full">
+            <input
+              type="text"
+              name="room_id"
+              placeholder="Enter Room ID"
+              required
+              class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-md text-base focus:border-blue-500 focus:outline-none"
+            />
+            <button
+              type="submit"
+              class="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-base font-medium"
+            >
+              Join
+            </button>
+          </div>
+          <p class="text-sm text-gray-500">Share the Room ID with friends to play together</p>
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <div class="text-center mt-8 text-gray-500 text-sm">
+        <p>Based on the board game Decrypto by Thomas Dagenais-Lespérance</p>
+      </div>
+    </div>
+  </body>
+</html>
