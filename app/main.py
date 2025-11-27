@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from app.routers import lobby
 
@@ -8,7 +9,9 @@ app = FastAPI()
 # app.include_router(lobby.router)
 app.include_router(lobby.router)
 
+templates = Jinja2Templates(directory="app/templates")
+
 
 @app.get("/", response_class=HTMLResponse)
-async def root():
-    return "Welcome!"
+async def landing_page(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})

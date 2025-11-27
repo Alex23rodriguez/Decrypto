@@ -5,11 +5,14 @@
     <li class="py-1 border-b border-gray-200 last:border-b-0">{{ player }}{% if player == player_name %} (you) {% endif %}</li>
     {% endfor %}
   </ul>
-  {% if current_players|length < 4 %}
+  {% if current_players|length < 2 %}
   <p class="text-gray-600 mt-3">Waiting for more players...</p>
-  {% else %}
-  <button class="mt-3 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
-    Start Game
-  </button>
-  {% endif %}
+   {% else %}
+  <form ws-send>
+   <input type="hidden" name="action" value="start_game">
+   <button type="submit" class="mt-3 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors font-medium">
+     Start Game
+   </button>
+  </form>
+   {% endif %}
 </div>

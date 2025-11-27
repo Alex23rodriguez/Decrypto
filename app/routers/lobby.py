@@ -6,15 +6,6 @@ from fastapi.templating import Jinja2Templates
 router = APIRouter()
 
 templates = Jinja2Templates(directory="app/templates/lobby")
-templates_root = Jinja2Templates(directory="app/templates")
-
-
-@router.get("/", response_class=HTMLResponse)
-async def landing_page(request: Request):
-    return templates_root.TemplateResponse(
-        "index.html",
-        {"request": request}
-    )
 
 
 @router.get("/lobby/", response_class=RedirectResponse)
@@ -35,7 +26,6 @@ def get_ready_players(room_id):
 async def broadcast_read_player_list(room_id: str):
     """Broadcast the ready player list to all connected clients for a room."""
     current_players = get_ready_players(room_id)
-    print(f"current players in {room_id}: {current_players}")
     for ws, player_name in Rooms[room_id].items():
         text = templates.env.get_template("player_list.html").render(
             {"current_players": current_players, "player_name": player_name}
@@ -75,6 +65,7 @@ async def handle_websocket(websocket: WebSocket, room_id: str):
         while True:
             # Wait for any message (we don't expect client messages for now)
             action = await websocket.receive_json()
+            print("action:", action)
             if action["action"] == "join":
                 await update_player_status_ready(
                     websocket, room_id, action["player_name"]
@@ -82,6 +73,9 @@ async def handle_websocket(websocket: WebSocket, room_id: str):
 
             elif action["action"] == "leave":
                 await update_player_status_not_ready(websocket, room_id)
+
+            elif action["action"] == "start_game":
+                await redirect_ready_players_to_game(room_id)
 
     except WebSocketDisconnect:
         await disconnect_player(websocket, room_id)
@@ -92,8 +86,6 @@ async def connect_player(ws: WebSocket, room_id: str):
     if room_id not in Rooms:
         Rooms[room_id] = {}
     Rooms[room_id][ws] = None
-
-    print(f"player connected to room {room_id}")
 
     # Send initial player list
     current_players = get_ready_players(room_id)
@@ -108,8 +100,6 @@ async def disconnect_player(ws: WebSocket, room_id: str):
     """Handle a player leaving a room."""
     # Remove connection on disconnect
     del Rooms[room_id][ws]
-
-    print(f"player disconnected from room {room_id}")
 
     await broadcast_read_player_list(room_id)
 
@@ -165,3 +155,12 @@ async def update_player_status_not_ready(ws: WebSocket, room_id: str):
             {"room_id": room_id},
         )
     )
+
+
+async def redirect_ready_players_to_game(room_id):
+    redirect_html = (
+        f'<script id="action-form">window.location.href="/game/{room_id}";</script>'
+    )
+    for ws, name in Rooms[room_id].items():
+        if name:
+            await ws.send_text(redirect_html)
