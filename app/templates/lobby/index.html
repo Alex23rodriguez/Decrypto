@@ -8,6 +8,15 @@
     <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
   </head>
   <body class="bg-gray-100 font-sans" hx-ext="ws" ws-connect="/ws/lobby/{{room_id}}">
+    <script>
+    document.body.addEventListener("htmx:wsAfterMessage", (event) => {
+      const msg = JSON.parse(event.detail.message);
+
+      if (msg.type === "game-started") {
+      window.location.href = msg.url
+      }
+    });
+    </script>
     <div class="max-w-2xl mx-auto p-5">
       <div class="bg-white p-8 rounded-lg shadow-lg text-center">
         <h1 class="text-3xl font-bold text-gray-800 mb-5">Welcome to Decrypto!</h1>

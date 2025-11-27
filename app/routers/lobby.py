@@ -75,7 +75,8 @@ async def handle_websocket(websocket: WebSocket, room_id: str):
                 await update_player_status_not_ready(websocket, room_id)
 
             elif action["action"] == "start_game":
-                await redirect_ready_players_to_game(room_id)
+                if Rooms[room_id][websocket]:
+                    await redirect_ready_players_to_game(room_id)
 
     except WebSocketDisconnect:
         await disconnect_player(websocket, room_id)
@@ -158,9 +159,6 @@ async def update_player_status_not_ready(ws: WebSocket, room_id: str):
 
 
 async def redirect_ready_players_to_game(room_id):
-    redirect_html = (
-        f'<script id="action-form">window.location.href="/game/{room_id}";</script>'
-    )
     for ws, name in Rooms[room_id].items():
         if name:
-            await ws.send_text(redirect_html)
+            await ws.send_json({"type": "game-started", "url": f"/game/{room_id}"})
