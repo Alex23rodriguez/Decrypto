@@ -5,7 +5,7 @@
     <li class="py-1 border-b border-gray-200 last:border-b-0">{{ player }}{% if player == player_name %} (you) {% endif %}</li>
     {% endfor %}
   </ul>
-  {% if current_players|length < 4 %}
+  {% if current_players|length < 1 %}
   <p class="text-gray-600 mt-3">Waiting for more players...</p>
    {% elif player_name %}
   <form ws-send>

@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <title>Game - {{ game_id }}</title>
+    <title>Game - {{ room_id }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
@@ -9,9 +9,11 @@
     <div class="max-w-2xl mx-auto p-5">
       <div class="bg-white p-8 rounded-lg shadow-lg text-center">
         <h1 class="text-3xl font-bold text-gray-800 mb-5">Game Started!</h1>
-        <p class="text-gray-600 mb-4">Game ID: {{ game_id }}</p>
+        <p class="text-gray-600 mb-4">Welcome, {{ player_name }}!</p>
+        <p class="text-gray-600 mb-4">Game ID: {{ room_id }}</p>
         <p class="text-gray-600">Game logic coming soon...</p>
       </div>
     </div>
   </body>
 </html>
+

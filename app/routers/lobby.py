@@ -1,3 +1,5 @@
+import secrets
+
 from fastapi import (APIRouter, Form, Request, WebSocket, WebSocketDisconnect,
                      status)
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -6,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 router = APIRouter()
 
 templates = Jinja2Templates(directory="app/templates/lobby")
+MIN_NUM_PLAYERS = 1
 
 
 @router.get("/lobby/", response_class=RedirectResponse)
@@ -16,11 +19,16 @@ async def redirect_to_room(room_id: str):
 # In-memory storage for lobby players
 # (room_id -> websocket -> Optional[player_name])
 Rooms: dict[str, dict[WebSocket, str | None]] = {}
+Games: dict[str, dict[str, str]] = {}
 
 
-def get_ready_players(room_id):
+def get_ready_players(room_id) -> list[str]:
     """Get players that have already chosen a name for a room."""
     return [name for name in Rooms.get(room_id, {}).values() if name]
+
+
+def can_start_game(room_id: str, ws: WebSocket):
+    return Rooms[room_id][ws] and len(get_ready_players(room_id)) >= MIN_NUM_PLAYERS
 
 
 async def broadcast_read_player_list(room_id: str):
@@ -75,7 +83,7 @@ async def handle_websocket(websocket: WebSocket, room_id: str):
                 await update_player_status_not_ready(websocket, room_id)
 
             elif action["action"] == "start_game":
-                if Rooms[room_id][websocket]:
+                if can_start_game(room_id, websocket):
                     await redirect_ready_players_to_game(room_id)
 
     except WebSocketDisconnect:
@@ -112,7 +120,7 @@ def is_valid_name(name: str, room_id):
     if len(name.strip()) > 64:
         return False
 
-    if name in Rooms[room_id].values():
+    if name in get_ready_players(room_id):
         return False
 
     return True
@@ -158,7 +166,19 @@ async def update_player_status_not_ready(ws: WebSocket, room_id: str):
     )
 
 
-async def redirect_ready_players_to_game(room_id):
-    for ws, name in Rooms[room_id].items():
-        if name:
-            await ws.send_json({"type": "game-started", "url": f"/game/{room_id}"})
+async def redirect_ready_players_to_game(room_id: str):
+    game_players: dict[str, str] = {}
+    for ws, player_name in Rooms[room_id].items():
+        if player_name:
+            player_token = secrets.token_urlsafe(32)
+            game_players[player_token] = player_name
+            print(f"gave {player_name} token: {player_token}")
+
+            await ws.send_json(
+                {
+                    "type": "game-started",
+                    "url": f"/game/{room_id}",
+                    "player_token": player_token,
+                }
+            )
+    Games[room_id] = game_players
