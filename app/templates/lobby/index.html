@@ -17,9 +17,9 @@
       }
 
       if (msg.type === "game-started") {
-        let cookie_str =`player_token=${msg.player_token}` //; path=/; max-age=7200; SameSite=Strict`;
-        document.cookie=cookie_str
-        window.location.href = msg.url
+        let cookie_str = `player_token=${msg.player_token}; path=/; max-age=7200; SameSite=Strict`;
+        document.cookie = cookie_str;
+        window.location.href = msg.url;
       }
     });
     </script>

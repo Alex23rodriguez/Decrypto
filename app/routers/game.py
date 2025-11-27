@@ -10,8 +10,9 @@ templates = Jinja2Templates(directory="app/templates/game")
 
 @router.get("/game/{room_id}", response_class=HTMLResponse)
 async def game_page(request: Request, room_id: str):
-    user_token = request.cookies.get("user_token")
-    if not user_token or user_token not in Games[room_id]:
+    user_token = request.cookies.get("player_token")
+    if not user_token or user_token not in Games.get(room_id, {}):
+        print(request.cookies.get("player_token"))
         raise HTTPException(status_code=403, detail="Invalid session")
     print("found user token: ", user_token)
     player_data = Games[room_id][user_token]
