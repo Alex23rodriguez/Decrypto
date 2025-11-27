@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Form, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse
+from fastapi import (APIRouter, Form, Request, WebSocket, WebSocketDisconnect,
+                     status)
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 router = APIRouter()
@@ -42,6 +43,11 @@ async def game_lobby(request: Request, room_id: str):
             "name_taken": False,
         },
     )
+
+
+@router.get("/lobby", response_class=HTMLResponse)
+async def get_lobby():
+    return RedirectResponse(url="/", status_code=status.HTTP_308_PERMANENT_REDIRECT)
 
 
 @router.websocket("/ws/lobby/{room_id}")
