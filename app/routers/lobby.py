@@ -1,12 +1,8 @@
-import secrets
-from pprint import pprint
-
-from fastapi import APIRouter, Form, Request, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, Request, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from app.core.storage import get_lobby_storage
-
+from app.core.storage import MIN_NUM_PLAYERS, get_lobby_storage
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates/lobby")
@@ -46,8 +42,20 @@ async def get_lobby():
 async def handle_websocket(ws: WebSocket, room_id: str):
     """Websocket lifecycle. Main loop for each client"""
 
+    player_id = lobby.add_player(room_id, ws)
+
     # Connect
-    await ws.accept()
+    await ws.accept(
+        headers=[
+            (
+                b"Set-Cookie",
+                f"player_token={player_id}; path=/; max-age=7200; SameSite=Strict".encode(
+                    "utf8"
+                ),
+            )
+        ]
+    )
+    ws.cookies["player_token"] = player_id
 
     await connect_player(ws, room_id)
 
@@ -67,33 +75,18 @@ async def handle_websocket(ws: WebSocket, room_id: str):
 
 async def connect_player(ws: WebSocket, room_id: str):
     """Handle a player joining a room."""
-    player_id = lobby.add_player(room_id, ws)
     ready_players = lobby.get_ready_players(room_id)
 
     await ws.send_text(
         templates.env.get_template("player_list.html").render(
-            {"ready_players": ready_players}
+            {"ready_players": ready_players, "min_players": MIN_NUM_PLAYERS}
         )
-    )
-    await refresh_player_id(ws, player_id)
-
-
-async def refresh_player_id(ws, player_id):
-    await ws.send_json(
-        {
-            "type": "update-player-token",
-            "player_token": player_id,
-        }
     )
 
 
 async def disconnect_player(ws: WebSocket, room_id: str):
     """Handle a player leaving a room."""
-    player_id = ws.cookies.get("player_token")
-    if not player_id:
-        player_id = lobby.add_player(room_id, ws)  # will give existing id
-
-    lobby.remove_player(room_id, player_id)
+    lobby.remove_player(room_id, ws)
 
     await broadcast_new_ready_players_list(room_id)
 
@@ -104,19 +97,18 @@ async def handle_action(action: dict, ws: WebSocket, room_id: str):
         await handle_player_joined(ws, room_id, name=action.get("player_name", None))
 
     elif action["action"] == "leave":
-        await handle_player_left(ws, room_id)
+        await handle_player_not_ready(ws, room_id)
 
     elif action["action"] == "start_game":
-        player_id = await get_player_id(room_id, ws)
+        player_id = await get_player_id(ws)
         if lobby.can_start_game(room_id, player_id):
             await start_game(room_id)
 
 
-async def get_player_id(room_id, ws: WebSocket):
+async def get_player_id(ws: WebSocket):
     player_id = ws.cookies.get("player_token")
-    if not player_id:
-        player_id = lobby.add_player(room_id, ws)
-        await refresh_player_id(ws, player_id)
+    assert player_id
+    print(f"got '{player_id}' on get_player_id")
     return player_id
 
 
@@ -128,18 +120,21 @@ async def broadcast_new_ready_players_list(room_id: str):
     await lobby.broadcast_message(
         room_id,
         lambda p: template.render(
-            {"ready_players": ready_players, "player_name": p.name}
+            {
+                "ready_players": ready_players,
+                "player_name": p.name,
+                "min_players": MIN_NUM_PLAYERS,
+            }
         ),
     )
 
 
 async def handle_player_joined(ws: WebSocket, room_id: str, name: str | None):
     """Handle a player choosing a name. Fails if name invalid"""
-
-    player_id = await get_player_id(room_id, ws)
-    updated = lobby.update_player_name(room_id, player_id, name)
+    updated = lobby.update_player_name(room_id, ws, name)
 
     if updated:
+        updated = lobby.update_player_ready(room_id, ws, True)
         # Broadcast updated player list
         await broadcast_new_ready_players_list(room_id)
 
@@ -158,9 +153,9 @@ async def handle_player_joined(ws: WebSocket, room_id: str, name: str | None):
         )
 
 
-async def handle_player_left(ws: WebSocket, room_id: str):
+async def handle_player_not_ready(ws: WebSocket, room_id: str):
     """Handle a player no longer being ready."""
-    lobby.remove_player(room_id, await get_player_id(room_id, ws))
+    lobby.update_player_ready(room_id, ws, False)
 
     # Broadcast updated player list
     await broadcast_new_ready_players_list(room_id)

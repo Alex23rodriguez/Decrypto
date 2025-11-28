@@ -7,27 +7,39 @@
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/ws.js"></script>
   </head>
-  <body class="bg-gray-100 font-sans" hx-ext="ws" ws-connect="/ws/lobby/{{room_id}}">
+  <body
+    class="bg-gray-100 font-sans"
+    hx-ext="ws"
+    ws-connect="/ws/lobby/{{room_id}}"
+  >
     <script>
-    document.body.addEventListener("htmx:wsAfterMessage", (event) => {
-      try{
-        var msg = JSON.parse(event.detail.message);
-      }catch(e){
-        return
-      }
+      document.body.addEventListener("htmx:wsAfterMessage", (event) => {
+        try {
+          var msg = JSON.parse(event.detail.message);
+        } catch (e) {
+          return;
+        }
 
-      if (msg.type === "game-started") {
-        let cookie_str = `player_token=${msg.player_token}; path=/; max-age=7200; SameSite=Strict`;
-        document.cookie = cookie_str;
-        window.location.href = msg.url;
-      }
-    });
+        console.log("got message:")
+        console.log(msg)
+        if (msg.type === "update-player-token") {
+          let cookie_str = `player_token=${msg.player_token}; path=/; max-age=7200; SameSite=Strict`;
+          document.cookie = cookie_str;
+          console.log("updated cookie")
+        } else if (msg.type === "game-started") {
+          window.location.href = msg.url;
+        }
+      });
     </script>
     <div class="max-w-2xl mx-auto p-5">
       <div class="bg-white p-8 rounded-lg shadow-lg text-center">
-        <h1 class="text-3xl font-bold text-gray-800 mb-5">Welcome to Decrypto!</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-5">
+          Welcome to Decrypto!
+        </h1>
         <p class="text-gray-600 mb-4">You've entered the lobby for:</p>
-        <div class="text-2xl font-bold text-blue-600 mb-6">Room ID: {{ room_id }}</div>
+        <div class="text-2xl font-bold text-blue-600 mb-6">
+          Room ID: {{ room_id }}
+        </div>
 
         <div id="current-player">{% include 'form.html' %}</div>
 
