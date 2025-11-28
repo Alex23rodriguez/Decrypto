@@ -1,14 +1,14 @@
 import secrets
+from pprint import pprint
 
-from fastapi import (APIRouter, Form, Request, WebSocket, WebSocketDisconnect,
-                     status)
+from fastapi import APIRouter, Form, Request, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 router = APIRouter()
 
 templates = Jinja2Templates(directory="app/templates/lobby")
-MIN_NUM_PLAYERS = 1
+MIN_NUM_PLAYERS = 4
 
 
 @router.get("/lobby/", response_class=RedirectResponse)
@@ -110,10 +110,10 @@ async def disconnect_player(ws: WebSocket, room_id: str):
     # Remove connection on disconnect
     del Rooms[room_id][ws]
 
-    await broadcast_read_player_list(room_id)
-
     if not Rooms[room_id]:
         del Rooms[room_id]
+    else:
+        await broadcast_read_player_list(room_id)
 
 
 def is_valid_name(name: str, room_id):
