@@ -1,5 +1,6 @@
 import secrets
-from typing import TypedDict
+from collections import defaultdict
+from typing import Callable, TypedDict
 from fastapi import WebSocket
 from pydantic import BaseModel
 
@@ -8,68 +9,112 @@ MIN_NUM_PLAYERS = 4
 
 class _Player(BaseModel):
     ws: WebSocket
-    name: str = ""
+    name: str | None = None
     ready: bool = False
 
 
-PlayerDict = TypedDict("PlayerDict", {"ws": WebSocket, "name": str, "ready": bool})
+class _Lobby(BaseModel):
+    _rooms: defaultdict[str, dict[str, _Player]] = defaultdict(dict)
 
+    def get_players(self, room_id: str):
+        return [p.model_copy() for p in self._rooms[room_id].values()]
 
-class _Room(BaseModel):
-    _room_id: str
-    _players: dict[str, _Player] = {}
+    def get_ready_players(self, room_id: str):
+        return [p.model_copy() for p in self._rooms[room_id].values() if p.ready]
 
-    def get_players(self) -> list[PlayerDict]:
-        return [p.model_dump() for p in self._players.values()]  # type:ignore
+    def can_start_game(self, room_id: str, player_id: str):
+        players = self._rooms[room_id]
+        if not players[player_id].ready:
+            return False
 
-    def get_ready_players(self) -> list[PlayerDict]:
-        return [p.model_dump() for p in self._players.values() if p.ready]  # type:ignore
+        return sum(p.ready for p in players.values()) >= MIN_NUM_PLAYERS
 
-    def can_start_game(self, player_id: str):
-        return (
-            self._players[player_id].ready
-            and len(self.get_ready_players()) >= MIN_NUM_PLAYERS
-        )
+    async def broadcast_message(
+        self, room_id: str, message: str | Callable[[_Player], str]
+    ):
+        for p in self._rooms[room_id].values():
+            if isinstance(message, str):
+                await p.ws.send_text(message)
+            else:
+                await p.ws.send_text(message(p))
 
-    async def broadcast_message(self, message: str):
-        for p in self._players.values():
-            await p.ws.send_text(message)
+    def add_player(self, room_id: str, ws: WebSocket):
+        players = self._rooms[room_id]
 
-    def add_player(self, ws: WebSocket):
-        for pid, p in self._players.items():
+        for pid, p in players.items():
             if ws == p.ws:
                 return pid
 
         player_id = secrets.token_urlsafe(32)
-        self._players[player_id] = _Player(ws=ws)
+        players[player_id] = _Player(ws=ws)
         return player_id
 
-    def remove_player(self, player_id: str):
-        if player_id in self._players:
-            del self._players[player_id]
+    def remove_player(self, room_id: str, player_id: str):
+        room = self._rooms[room_id]
+        room.pop(player_id)
+        if not room:
+            del self._rooms[room_id]
 
-    def update_player_name(self, player_id: str, name: str):
-        p = self._players[player_id]
-        p.name = name
-        p.ready = bool(name)
+    def update_player_ready(self, room_id: str, player_id: str, ready: bool):
+        self._rooms[room_id][player_id].ready = ready
+
+    def _is_valid_name(self, name: str):
+        if 0 < len(name.strip()) < 32:
+            return True
+
+        return False
+
+    def update_player_name(self, room_id: str, player_id: str, name: str | None):
+        room = self._rooms[room_id]
+        if name is None:
+            room[player_id].name = None
+            return True
+
+        if not self._is_valid_name(name):
+            return False
+
+        taken = any(
+            player_id != other_id and name == other.name
+            for other_id, other in room.items()
+        )
+        if taken:
+            return False
+
+        room[player_id].name = name
+        return True
+
+    def start_game(self, room_id) -> list[_Player]:
+        ready_players = {
+            player_id: player.model_copy()
+            for player_id, player in self._rooms[room_id].items()
+            if player.ready
+        }
+        started = _games.new_game(
+            room_id,
+            ready_players,
+        )
+        if started:
+            return list(ready_players.values())
+        return []
 
 
-class _Lobby(BaseModel):
-    _rooms: dict[str, _Room] = {}
+class _Games(BaseModel):
+    _rooms: defaultdict[str, dict[str, _Player]] = defaultdict(dict)
 
-    def clean(self):
-        for room_id, r in self._rooms.items():
-            if not r._players:
-                del self._rooms[room_id]
-
-    def __getitem__(self, room_id: str, /) -> _Room:
-        if room_id not in self._rooms:
-            self._rooms[room_id] = _Room(_room_id=room_id)
-        return self._rooms[room_id]
+    def new_game(self, room_id: str, room: dict[str, _Player]):
+        if room_id in self._rooms:
+            return False
+        self._rooms[room_id] = room
+        return True
 
 
 _lobby = _Lobby()
+_games = _Games()
 
 
 def get_lobby_storage():
     return _lobby
+
+
+def get_games_storage():
+    return _games
